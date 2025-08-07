@@ -1,8 +1,8 @@
 import { test, expect, describe, beforeEach, afterEach } from 'bun:test';
-import { BuildCommand } from '../lib/commands/build';
+import { build } from './build';
 import { $ } from 'bun';
 
-describe('BuildCommand', () => {
+describe('build', () => {
   const testDir = './test-build-output';
   
   beforeEach(async () => {
@@ -42,13 +42,11 @@ describe('BuildCommand', () => {
     process.chdir(testDir);
     
     try {
-      const buildCommand = new BuildCommand({
+      await build({
         project: './tsconfig.json',
         outdir: './dist',
         target: 'bun'
       });
-
-      await buildCommand.run();
 
       const outputFile = Bun.file('./dist/src/index.js');
       expect(await outputFile.exists()).toBe(true);
@@ -70,14 +68,12 @@ describe('BuildCommand', () => {
     process.chdir(testDir);
     
     try {
-      const buildCommand = new BuildCommand({
+      await build({
         project: './tsconfig.json',
         outdir: './dist',
         target: 'bun',
         minify: true
       });
-
-      await buildCommand.run();
 
       const outputFile = Bun.file('./dist/src/index.js');
       expect(await outputFile.exists()).toBe(true);
@@ -97,14 +93,12 @@ describe('BuildCommand', () => {
     process.chdir(testDir);
     
     try {
-      const buildCommand = new BuildCommand({
+      await build({
         project: './tsconfig.json',
         outdir: './dist',
         target: 'bun',
         sourcemap: true
       });
-
-      await buildCommand.run();
 
       const mapFile = Bun.file('./dist/src/index.js.map');
       expect(await mapFile.exists()).toBe(true);

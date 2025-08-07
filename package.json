@@ -15,6 +15,7 @@
   "dependencies": {
     "balk": "^0.1.1",
     "commander": "^12.1.0",
+    "oxc-transform": "^0.81.0",
     "oxlint": "^1.10.0"
   },
   "devDependencies": {

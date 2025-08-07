@@ -2,11 +2,11 @@
 
 import { Command } from 'commander';
 import balk from 'balk';
-import { BuildCommand } from '../lib/commands/build';
-import { TypeCheckCommand } from '../lib/commands/typecheck';
-import { LintCommand } from '../lib/commands/lint';
-import { WatchCommand } from '../lib/commands/watch';
-import { DeclarationCommand } from '../lib/commands/declarations';
+import { BuildCommand } from './commands/build';
+import { TypeCheckCommand } from './commands/typecheck';
+import { LintCommand } from './commands/lint';
+import { WatchCommand } from './commands/watch';
+import { DeclarationCommand } from './commands/declarations';
 import { version } from '../package.json';
 
 const program = new Command();

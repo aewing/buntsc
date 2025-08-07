@@ -1,0 +1,1 @@
+export { measureTime } from './performance';
