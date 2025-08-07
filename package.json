@@ -1,0 +1,28 @@
+{
+  "name": "buntsc",
+  "version": "0.1.0",
+  "description": "TypeScript compiler alternative powered by Bun and OXC",
+  "module": "src/index.ts",
+  "type": "module",
+  "bin": {
+    "buntsc": "./bin/buntsc.ts"
+  },
+  "scripts": {
+    "build": "bun build ./bin/buntsc.ts --outdir=dist --target=bun",
+    "test": "bun test",
+    "dev": "bun --hot ./bin/buntsc.ts"
+  },
+  "dependencies": {
+    "balk": "^0.1.1",
+    "commander": "^12.1.0",
+    "oxlint": "^1.10.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^22.10.5"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "private": false
+}
