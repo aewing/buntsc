@@ -31,6 +31,9 @@ export class BuildCommand {
 
       console.log(balk.gray(`Found ${files.length} files to build`));
 
+      // Calculate root directory for preserving structure
+      const rootDir = process.cwd();
+      
       const buildResult = await Bun.build({
         entrypoints: files,
         outdir: this.options.outdir,
@@ -40,10 +43,11 @@ export class BuildCommand {
         splitting: this.options.splitting || false,
         external: this.options.external || [],
         naming: {
-          entry: '[dir]/[name].[ext]',
-          chunk: '[name]-[hash].[ext]',
+          entry: '[dir]/[name].js',
+          chunk: '[name]-[hash].js',
           asset: '[name]-[hash].[ext]',
         },
+        root: rootDir,
         loader: {
           '.ts': 'ts',
           '.tsx': 'tsx',

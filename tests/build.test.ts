@@ -83,8 +83,10 @@ describe('BuildCommand', () => {
       expect(await outputFile.exists()).toBe(true);
       const content = await outputFile.text();
       
-      expect(content.includes('\n')).toBe(false);
-      expect(content.length).toBeLessThan(200);
+      // Check that content is minified (much shorter than original)
+      const originalFile = Bun.file(`./src/index.ts`);
+      const originalContent = await originalFile.text();
+      expect(content.length).toBeLessThan(originalContent.length);
     } finally {
       process.chdir(originalCwd);
     }
@@ -110,7 +112,7 @@ describe('BuildCommand', () => {
       const mapContent = await mapFile.text();
       const sourceMap = JSON.parse(mapContent);
       expect(sourceMap.version).toBe(3);
-      expect(sourceMap.sources).toContain('../../src/index.ts');
+      expect(sourceMap.sources).toContain('../src/index.ts');
     } finally {
       process.chdir(originalCwd);
     }

@@ -6,39 +6,71 @@ export async function loadTsConfig(configPath: string): Promise<any> {
     const file = Bun.file(absolutePath);
     const content = await file.text();
     
-    const jsonContent = content
-      .split('\n')
-      .map(line => {
-        const commentIndex = line.indexOf('//');
-        if (commentIndex === -1) return line;
-        
-        let inString = false;
-        let escapeNext = false;
-        
-        for (let i = 0; i < commentIndex; i++) {
-          if (escapeNext) {
-            escapeNext = false;
-            continue;
-          }
-          if (line[i] === '\\') {
-            escapeNext = true;
-            continue;
-          }
-          if (line[i] === '"') {
-            inString = !inString;
-          }
-        }
-        
-        if (!inString) {
-          return line.substring(0, commentIndex);
-        }
-        return line;
-      })
-      .join('\n')
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/,(\s*[}\]])/g, '$1');
+    // Remove comments but be careful with strings
+    let result = '';
+    let inString = false;
+    let inSingleLineComment = false;
+    let inMultiLineComment = false;
+    let escapeNext = false;
     
-    return JSON.parse(jsonContent);
+    for (let i = 0; i < content.length; i++) {
+      const char = content[i];
+      const nextChar = content[i + 1];
+      
+      if (escapeNext) {
+        result += char;
+        escapeNext = false;
+        continue;
+      }
+      
+      if (char === '\\' && inString) {
+        result += char;
+        escapeNext = true;
+        continue;
+      }
+      
+      if (inSingleLineComment) {
+        if (char === '\n') {
+          inSingleLineComment = false;
+          result += char;
+        }
+        continue;
+      }
+      
+      if (inMultiLineComment) {
+        if (char === '*' && nextChar === '/') {
+          inMultiLineComment = false;
+          i++; // Skip the '/'
+        }
+        continue;
+      }
+      
+      if (!inString) {
+        if (char === '/' && nextChar === '/') {
+          inSingleLineComment = true;
+          i++; // Skip the second '/'
+          continue;
+        }
+        if (char === '/' && nextChar === '*') {
+          inMultiLineComment = true;
+          i++; // Skip the '*'
+          continue;
+        }
+      }
+      
+      if (char === '"' && !inString) {
+        inString = true;
+      } else if (char === '"' && inString) {
+        inString = false;
+      }
+      
+      result += char;
+    }
+    
+    // Remove trailing commas
+    result = result.replace(/,(\s*[}\]])/g, '$1');
+    
+    return JSON.parse(result);
   } catch (error) {
     console.warn(`Warning: Could not load tsconfig from ${configPath}, using defaults`);
     return {

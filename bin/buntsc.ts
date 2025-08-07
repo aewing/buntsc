@@ -14,7 +14,17 @@ const program = new Command();
 program
   .name('buntsc')
   .description('TypeScript compiler alternative powered by Bun and OXC')
-  .version(version);
+  .version(version)
+  .option('-p, --project <path>', 'Compile the project given the path to its configuration file', './tsconfig.json')
+  .option('-b, --build', 'Build mode')
+  .option('-w, --watch', 'Watch input files')
+  .option('--noEmit', 'Do not emit outputs')
+  .option('-o, --outDir <dir>', 'Redirect output structure to the directory')
+  .option('--declaration', 'Generate corresponding .d.ts files')
+  .option('--emitDeclarationOnly', 'Only output d.ts files and not JavaScript files')
+  .option('--sourceMap', 'Generate source map files')
+  .option('--target <target>', 'Set the JavaScript language version for emitted JavaScript')
+  .option('--module <module>', 'Specify what module code is generated');
 
 program
   .command('build')
@@ -126,5 +136,39 @@ program
     console.log(balk.green('✅ Created buntsc.config.json'));
     console.log(balk.blue('\n🎉 buntsc project initialized successfully!'));
   });
+
+// Add default action for tsc-like behavior
+program.action(async (options) => {
+  // Default behavior like tsc
+  if (options.watch) {
+    const watchCommand = new WatchCommand({
+      project: options.project,
+      outdir: options.outDir || './dist',
+      target: 'bun'
+    });
+    await watchCommand.run();
+  } else if (options.emitDeclarationOnly) {
+    const declarationCommand = new DeclarationCommand({
+      project: options.project,
+      outdir: options.outDir
+    });
+    await declarationCommand.run();
+  } else if (options.noEmit) {
+    const typeCheckCommand = new TypeCheckCommand({
+      project: options.project,
+      noEmit: true
+    });
+    await typeCheckCommand.run();
+  } else {
+    // Default: build the project
+    const buildCommand = new BuildCommand({
+      project: options.project,
+      outdir: options.outDir || './dist',
+      target: options.target || 'bun',
+      sourcemap: options.sourceMap
+    });
+    await buildCommand.run();
+  }
+});
 
 program.parse();

@@ -1,5 +1,6 @@
-import { watch } from 'bun';
 import { Glob } from 'bun';
+import { watch as fsWatch } from 'node:fs';
+import { join, relative } from 'node:path';
 import balk from 'balk';
 import { BuildCommand, type BuildOptions } from './build';
 import { loadTsConfig } from '../utils/config';
@@ -23,25 +24,43 @@ export class WatchCommand {
     const tsConfig = await loadTsConfig(this.options.project);
     const patterns = tsConfig.include || ['src/**/*.ts', 'src/**/*.tsx'];
     
-    const watcher = watch(process.cwd(), {
-      async onChange(path) {
+    const cwd = process.cwd();
+    const watchDirs = new Set<string>();
+    
+    // Extract directories to watch from patterns
+    for (const pattern of patterns) {
+      const baseDir = pattern.split('/**')[0] || '.';
+      watchDirs.add(baseDir);
+    }
+    
+    const watchers: Array<ReturnType<typeof fsWatch>> = [];
+    
+    for (const dir of watchDirs) {
+      const watcher = fsWatch(join(cwd, dir), { recursive: true }, (eventType, filename) => {
+        if (!filename) return;
+        
+        const relativePath = relative(cwd, join(dir, filename));
+        
+        // Check if file matches any of our patterns
         const shouldWatch = patterns.some((pattern: string) => {
           const glob = new Glob(pattern);
-          return glob.match(path);
+          return glob.match(relativePath);
         });
 
         if (!shouldWatch) return;
 
-        console.log(balk.cyan(`\n📝 File changed: ${path}`));
-        await this.rebuild();
-      }
-    });
+        console.log(balk.cyan(`\n📝 File changed: ${relativePath}`));
+        this.rebuild();
+      });
+      
+      watchers.push(watcher);
+    }
 
     await this.rebuild();
 
     process.on('SIGINT', () => {
       console.log(balk.yellow('\n👋 Stopping watcher...'));
-      watcher.close();
+      watchers.forEach(w => w.close());
       process.exit(0);
     });
 
