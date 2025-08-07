@@ -1,8 +1,8 @@
 import type { CompilerOptions, CompilerResult } from './types';
 import { build } from '../build';
-import { typeCheck } from './typecheck';
-import { generateDeclarations } from './declarations';
-import { watch } from './watch';
+import { typeCheck } from '../typecheck';
+import { generateDeclarations } from '../declarations';
+import { watch } from '../watch';
 
 /**
  * Main compile function that mimics tsc behavior
